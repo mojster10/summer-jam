@@ -1,0 +1,398 @@
+/* Abelium design system — modra monokromatska paleta */
+
+:root {
+  /* Barve */
+  --bg: #f2f7f9;
+  --card: #ffffff;
+  --primary: #006f9b;
+  --dark: #003040;
+  --danger: #b3261e;
+  --muted: #4a6b76;
+  --tint-selected: #e6f1f6;
+  --tint-unselected: #f6fafb;
+
+  /* Radiji */
+  --radius-card: 16px;
+  --radius-row: 10px;
+  --radius-pill: 999px;
+
+  /* Sence */
+  --shadow-card: 0 1px 2px rgba(0, 48, 64, 0.06);
+
+  /* Animacije */
+  --anim: 160ms ease;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  padding: 0;
+  margin: 0;
+}
+
+body {
+  background: var(--bg);
+  color: var(--dark);
+  font-family: "HK Grotesk", system-ui, -apple-system, "Segoe UI", Roboto,
+    Helvetica, Arial, sans-serif;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+  line-height: 1.45;
+}
+
+a {
+  color: inherit;
+}
+
+/* Fokus stanja — 2px moder outline za dostopnost */
+:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Postavitev */
+.page {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 40px 20px 80px;
+}
+
+/* Eyebrow značka */
+.eyebrow {
+  display: inline-block;
+  background: var(--tint-selected);
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 12px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+}
+
+.title {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1.05;
+  margin: 18px 0 12px;
+  color: var(--dark);
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 18px;
+  font-weight: 400;
+  margin: 0 0 20px;
+  max-width: 60ch;
+}
+
+.divider {
+  width: 64px;
+  height: 4px;
+  background: var(--primary);
+  border-radius: var(--radius-pill);
+  margin: 0 0 28px;
+}
+
+/* Vrstica z izbiro datuma */
+.date-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.date-row label {
+  font-weight: 600;
+  color: var(--dark);
+}
+
+.date-input {
+  font-family: inherit;
+  font-size: 15px;
+  font-weight: 500;
+  color: var(--dark);
+  background: var(--card);
+  border: 1px solid #d4e4ea;
+  border-radius: var(--radius-pill);
+  padding: 9px 16px;
+}
+
+.refreshed {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+/* Banner s skupno ceno */
+.banner {
+  background: var(--dark);
+  color: #fff;
+  border-radius: var(--radius-card);
+  padding: 22px 24px;
+  margin-bottom: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  transition: background var(--anim);
+}
+
+.banner.over {
+  background: var(--danger);
+}
+
+.banner-label {
+  font-size: 15px;
+  font-weight: 500;
+  opacity: 0.9;
+}
+
+.banner-note {
+  font-size: 14px;
+  font-weight: 400;
+  opacity: 0.85;
+  margin-top: 2px;
+}
+
+.banner-total {
+  font-size: 40px;
+  font-weight: 800;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+/* Kartice kategorij */
+.card {
+  background: var(--card);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-card);
+  padding: 20px 22px;
+  margin-bottom: 18px;
+}
+
+.card-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+
+.card-head-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 20px;
+  font-weight: 700;
+  color: var(--dark);
+}
+
+.card-emoji {
+  font-size: 24px;
+}
+
+.subtotal-pill {
+  background: var(--tint-selected);
+  color: var(--primary);
+  font-weight: 700;
+  font-size: 14px;
+  padding: 6px 14px;
+  border-radius: var(--radius-pill);
+  white-space: nowrap;
+}
+
+/* Vrstice možnosti */
+.option {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  width: 100%;
+  text-align: left;
+  background: var(--tint-unselected);
+  border: 1px solid transparent;
+  border-radius: var(--radius-row);
+  padding: 12px 14px;
+  margin-top: 8px;
+  min-height: 44px;
+  cursor: pointer;
+  font-family: inherit;
+  color: var(--dark);
+  transition: background var(--anim), border-color var(--anim),
+    transform var(--anim);
+}
+
+.option:hover {
+  border-color: #cfe4ec;
+}
+
+.option.selected {
+  background: var(--tint-selected);
+  border-color: #bfdeea;
+}
+
+.option:active {
+  transform: translateY(1px);
+}
+
+.checkbox {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 22px;
+  border: 2px solid #b7ccd5;
+  border-radius: 6px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background var(--anim), border-color var(--anim);
+}
+
+.option.selected .checkbox {
+  background: var(--primary);
+  border-color: var(--primary);
+}
+
+.checkbox svg {
+  width: 14px;
+  height: 14px;
+  opacity: 0;
+  transition: opacity var(--anim);
+}
+
+.option.selected .checkbox svg {
+  opacity: 1;
+}
+
+.option-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.option-name {
+  font-weight: 600;
+  font-size: 15px;
+}
+
+.option-name a {
+  color: var(--primary);
+  text-decoration: none;
+}
+
+.option-name a:hover {
+  text-decoration: underline;
+}
+
+.option-price {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--dark);
+  white-space: nowrap;
+}
+
+/* Skeleton / loader */
+.skeleton-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 14px;
+  margin-top: 8px;
+  min-height: 44px;
+  border-radius: var(--radius-row);
+  background: var(--tint-unselected);
+}
+
+.skeleton-box {
+  background: linear-gradient(90deg, #e9f1f4 25%, #f4f9fb 50%, #e9f1f4 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.2s infinite;
+  border-radius: 6px;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
+}
+
+/* Opozorilo o neaktualnih cenah */
+.stale-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 10px;
+}
+
+/* Gumb za ponastavitev */
+.reset-btn {
+  display: block;
+  margin: 32px auto 0;
+  background: transparent;
+  color: var(--primary);
+  border: 2px solid var(--primary);
+  border-radius: var(--radius-pill);
+  font-family: inherit;
+  font-weight: 600;
+  font-size: 15px;
+  padding: 12px 28px;
+  min-height: 44px;
+  cursor: pointer;
+  transition: background var(--anim), color var(--anim);
+}
+
+.reset-btn:hover {
+  background: var(--primary);
+  color: #fff;
+}
+
+/* Fade-in animacija za kartice */
+.fade-in {
+  animation: fadeIn 220ms ease both;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* Mobilna postavitev */
+@media (max-width: 560px) {
+  .page {
+    padding: 28px 16px 64px;
+  }
+  .title {
+    font-size: 34px;
+  }
+  .subtitle {
+    font-size: 16px;
+  }
+  .banner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .banner-total {
+    font-size: 34px;
+  }
+}
