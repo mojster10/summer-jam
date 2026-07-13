@@ -270,45 +270,17 @@
       playNoise(ctx, { seconds: 0.9, peak: 0.35, decay: 0.8, filterType: "highpass", filterFreq: 6000 });
     }
 
-    function soundLaugh() {
+    function soundLaser() {
       const ctx = getCtx();
-      // Serija hitrih "ha-ha" tonov z rahlim padanjem višine.
-      const base = 300;
-      for (let i = 0; i < 5; i++) {
-        playTone(ctx, {
-          type: "triangle",
-          freq: base - i * 15,
-          freqEnd: base - i * 15 + 60,
-          attack: 0.01,
-          peak: 0.3,
-          decay: 0.12,
-          start: i * 0.14,
-        });
-      }
+      // Hiter drseč ton navzdol = klasični "pew" laser.
+      playTone(ctx, { type: "sawtooth", freq: 1400, freqEnd: 180, attack: 0.005, peak: 0.35, decay: 0.35 });
     }
 
-    function soundApplause() {
+    function soundCoin() {
       const ctx = getCtx();
-      // Aplavz = daljši pasovno filtriran šum z rahlim narastom.
-      const src = ctx.createBufferSource();
-      const gain = ctx.createGain();
-      const filter = ctx.createBiquadFilter();
-      const seconds = 1.6;
-
-      src.buffer = makeNoiseBuffer(ctx, seconds);
-      filter.type = "bandpass";
-      filter.frequency.value = 2500;
-      filter.Q.value = 0.6;
-
-      const t = ctx.currentTime;
-      gain.gain.setValueAtTime(0.0001, t);
-      gain.gain.exponentialRampToValueAtTime(0.5, t + 0.15);
-      gain.gain.setValueAtTime(0.5, t + seconds - 0.5);
-      gain.gain.exponentialRampToValueAtTime(0.0001, t + seconds);
-
-      src.connect(filter).connect(gain).connect(ctx.destination);
-      src.start();
-      src.stop(t + seconds + 0.05);
+      // Dva zaporedna tona (B5 -> E6) = zvok pobranega kovanca.
+      playTone(ctx, { type: "square", freq: 988, attack: 0.005, peak: 0.3, decay: 0.08 });
+      playTone(ctx, { type: "square", freq: 1319, attack: 0.005, peak: 0.3, decay: 0.3, start: 0.08 });
     }
 
     function soundAlarm() {
@@ -350,8 +322,8 @@
       { key: "2", label: "Airhorn", emoji: "📢", color: "#e67e22", play: soundAirhorn },
       { key: "3", label: "Boben", emoji: "🥁", color: "#f1c40f", play: soundDrum },
       { key: "4", label: "Činele", emoji: "🎶", color: "#2ecc71", play: soundCymbal },
-      { key: "5", label: "Smeh", emoji: "😂", color: "#1abc9c", play: soundLaugh },
-      { key: "6", label: "Aplavz", emoji: "👏", color: "#3498db", play: soundApplause },
+      { key: "5", label: "Laser", emoji: "⚡", color: "#1abc9c", play: soundLaser },
+      { key: "6", label: "Kovanec", emoji: "🪙", color: "#3498db", play: soundCoin },
       { key: "7", label: "Alarm", emoji: "🚨", color: "#9b59b6", play: soundAlarm },
       { key: "8", label: "Wow", emoji: "🤩", color: "#e84393", play: soundWow },
       { key: "9", label: "Gong", emoji: "🔔", color: "#607d8b", play: soundGong },
