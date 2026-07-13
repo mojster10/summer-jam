@@ -1,0 +1,136 @@
+:root {
+  --bg: #0f1020;
+  --bg-accent: #1a1c3a;
+  --text: #f5f6ff;
+  --muted: #a5a8d0;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  min-height: 100vh;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  color: var(--text);
+  background: radial-gradient(circle at top, var(--bg-accent), var(--bg));
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 1.5rem;
+  gap: 1.5rem;
+}
+
+.header {
+  text-align: center;
+}
+
+.header h1 {
+  font-size: clamp(1.8rem, 5vw, 2.8rem);
+  letter-spacing: 1px;
+}
+
+.subtitle {
+  margin-top: 0.4rem;
+  color: var(--muted);
+  font-size: 0.95rem;
+}
+
+kbd {
+  background: rgba(255, 255, 255, 0.12);
+  border-radius: 5px;
+  padding: 1px 7px;
+  font-family: inherit;
+  font-size: 0.85em;
+}
+
+main {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  width: 100%;
+  max-width: 560px;
+}
+
+.pad {
+  position: relative;
+  aspect-ratio: 1 / 1;
+  border: none;
+  border-radius: 18px;
+  cursor: pointer;
+  color: #fff;
+  font-family: inherit;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  padding: 0.5rem;
+  background: var(--pad-color, #333);
+  box-shadow: 0 8px 0 rgba(0, 0, 0, 0.35), 0 12px 24px rgba(0, 0, 0, 0.4);
+  transition: transform 0.06s ease, box-shadow 0.06s ease, filter 0.12s ease;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.pad:hover {
+  filter: brightness(1.12);
+}
+
+.pad:focus-visible {
+  outline: 3px solid #fff;
+  outline-offset: 3px;
+}
+
+.pad .emoji {
+  font-size: clamp(1.8rem, 7vw, 2.6rem);
+  line-height: 1;
+}
+
+.pad .label {
+  font-size: clamp(0.8rem, 2.5vw, 1rem);
+  font-weight: 600;
+}
+
+.pad .hotkey {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 0.75rem;
+  opacity: 0.65;
+  font-weight: 700;
+}
+
+/* Stisnjen / aktiven gumb */
+.pad.active {
+  transform: translateY(6px) scale(0.97);
+  box-shadow: 0 2px 0 rgba(0, 0, 0, 0.35), 0 4px 10px rgba(0, 0, 0, 0.4);
+  filter: brightness(1.4);
+}
+
+.footer {
+  color: var(--muted);
+  font-size: 0.8rem;
+  text-align: center;
+  max-width: 560px;
+}
+
+@media (max-width: 420px) {
+  body {
+    padding: 1rem;
+  }
+  .board {
+    gap: 0.7rem;
+  }
+  .pad {
+    border-radius: 14px;
+  }
+}
