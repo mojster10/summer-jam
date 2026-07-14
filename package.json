@@ -1,8 +1,8 @@
 {
-  "name": "sanjski-vikend-planer",
+  "name": "hidrant-lj",
   "version": "1.0.0",
   "private": true,
-  "description": "Sanjski vikend planer — Dream Weekend Planner za vikend v Ljubljani",
+  "description": "Hidrant LJ — iskalnik najbližjih hidrantov za gasilce v Ljubljani",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -12,7 +12,9 @@
   "dependencies": {
     "next": "14.2.5",
     "react": "18.3.1",
-    "react-dom": "18.3.1"
+    "react-dom": "18.3.1",
+    "leaflet": "1.9.4",
+    "react-leaflet": "4.2.1"
   },
   "devDependencies": {
     "eslint": "8.57.0",

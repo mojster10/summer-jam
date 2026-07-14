@@ -1,15 +1,16 @@
 import "./globals.css";
+import "leaflet/dist/leaflet.css";
 
 export const metadata = {
-  title: "Sanjski vikend planer — vikend v Ljubljani",
+  title: "Hidrant LJ — najbližji hidranti za gasilce",
   description:
-    "Načrtuj svoj sanjski vikend v Ljubljani: izberi lete, hotel, hrano in zabavo znotraj proračuna €500.",
+    "Poišči najbližje in najprimernejše hidrante v Ljubljani glede na razdaljo, pretok vode in možnost parkiranja gasilskega vozila.",
 };
 
 export const viewport = {
   width: "device-width",
   initialScale: 1,
-  themeColor: "#003040",
+  themeColor: "#b91c1c",
 };
 
 export default function RootLayout({ children }) {
