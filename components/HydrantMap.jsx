@@ -8,6 +8,7 @@ import {
   Marker,
   Popup,
   useMap,
+  useMapEvents,
 } from "react-leaflet";
 import L from "leaflet";
 import { formatDistance } from "@/lib/geo.js";
@@ -37,7 +38,17 @@ function Recenter({ center, results }) {
   return null;
 }
 
-export default function HydrantMap({ fireLocation, results = [] }) {
+// Ob kliku na zemljevid nastavi lokacijo požara
+function ClickHandler({ onPick }) {
+  useMapEvents({
+    click(e) {
+      if (onPick) onPick({ lat: e.latlng.lat, lng: e.latlng.lng });
+    },
+  });
+  return null;
+}
+
+export default function HydrantMap({ fireLocation, results = [], onPick }) {
   const center = fireLocation
     ? [fireLocation.lat, fireLocation.lng]
     : LJ_CENTER;
@@ -90,6 +101,7 @@ export default function HydrantMap({ fireLocation, results = [] }) {
         );
       })}
 
+      {onPick && <ClickHandler onPick={onPick} />}
       {fireLocation && <Recenter center={center} results={results} />}
     </MapContainer>
   );

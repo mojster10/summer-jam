@@ -23,9 +23,13 @@ oceni. Rezultat je razvrščen seznam, kjer je najboljši označen kot
 
 ## Funkcije
 
-- 🔎 **Iskanje po naslovu** — geokodiranje prek brezplačnega OpenStreetMap
-  Nominatim (omejeno na Ljubljano).
-- 📍 **Trenutna lokacija** — uporabi GPS naprave.
+- 🔎 **Iskanje po naslovu** — geokodiranje **v brskalniku** (Photon → Nominatim
+  kot rezerva), omejeno na Ljubljano. Zahtevek gre iz uporabnikovega IP-ja, zato
+  se izognemo blokadi (403), ki jo te storitve pogosto vrnejo oblačnim
+  strežnikom (Vercel, AWS).
+- 📍 **Trenutna lokacija** — uporabi GPS naprave (deluje prek HTTPS).
+- 🖱️ **Klik na zemljevid** — lokacijo požara lahko določiš tudi s klikom na
+  zemljevid; deluje tudi, če geokodiranje ali GPS nista na voljo.
 - 🗺️ **Interaktivni zemljevid** (Leaflet + OpenStreetMap) z lokacijo požara in
   hidranti.
 - 📊 **Podrobnosti hidranta** — razdalja, ocenjeni čas prihoda, pretok, tlak,
@@ -38,7 +42,7 @@ oceni. Rezultat je razvrščen seznam, kjer je najboljši označen kot
 |-----|--------|------|
 | `/api/hydrants` | GET | Vsi hidranti iz baze. |
 | `/api/nearest` | POST | Telo `{ lat, lng, limit? }` → razvrščeni hidranti. |
-| `/api/geocode?q=<naslov>` | GET | Naslov → koordinate (Nominatim). |
+| `/api/geocode?q=<naslov>` | GET | Naslov → koordinate (neobvezno; UI geokodira v brskalniku). |
 
 ## Baza podatkov
 

@@ -3,6 +3,7 @@
 import { useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import HydrantList from "@/components/HydrantList.jsx";
+import { geocodeAddress } from "@/lib/geocodeClient.js";
 
 // Leaflet ne sme na strežnik (uporablja window) → dinamični uvoz brez SSR
 const HydrantMap = dynamic(() => import("@/components/HydrantMap.jsx"), {
@@ -65,13 +66,27 @@ export default function Home() {
         findHydrants(loc, "moja lokacija");
       },
       (err) => {
-        setError(
-          "Ni bilo mogoče pridobiti lokacije: " +
-            (err.message || "dovoljenje zavrnjeno.")
-        );
+        const secure =
+          typeof window !== "undefined" &&
+          (window.isSecureContext ||
+            location.hostname === "localhost" ||
+            location.hostname === "127.0.0.1");
+        let msg;
+        if (err.code === 1) {
+          msg = secure
+            ? "Dostop do lokacije je zavrnjen. V nastavitvah brskalnika dovoli dostop do lokacije za to stran."
+            : "Geolokacija deluje samo prek HTTPS. Odpri aplikacijo prek https:// (npr. na Vercelu) ali klikni lokacijo na zemljevidu.";
+        } else if (err.code === 2) {
+          msg = "Lokacija ni na voljo. Klikni lokacijo požara na zemljevidu.";
+        } else if (err.code === 3) {
+          msg = "Pridobivanje lokacije je poteklo. Poskusi znova ali klikni na zemljevid.";
+        } else {
+          msg = "Lokacije ni bilo mogoče pridobiti. Klikni lokacijo na zemljevidu.";
+        }
+        setError(msg);
         setStatus("");
       },
-      { enableHighAccuracy: true, timeout: 10000 }
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
     );
   }, [findHydrants]);
 
@@ -88,20 +103,20 @@ export default function Home() {
       setError("");
       setStatus("Iščem naslov …");
       try {
-        const res = await fetch(`/api/geocode?q=${encodeURIComponent(q)}`);
-        const data = await res.json();
-        if (!res.ok) throw new Error(data.error || "Geokodiranje ni uspelo.");
-        if (!data.results.length) {
+        // Geokodiranje poteka v brskalniku (uporabnikov IP), da se
+        // izognemo blokadi (403) storitev do oblačnih strežnikov.
+        const results = await geocodeAddress(q);
+        if (!results.length) {
           setError("Naslova ni bilo mogoče najti v Ljubljani.");
           setStatus("");
           setLoading(false);
           return;
         }
-        if (data.results.length === 1) {
-          const r = data.results[0];
+        if (results.length === 1) {
+          const r = results[0];
           findHydrants({ lat: r.lat, lng: r.lng }, r.label);
         } else {
-          setSuggestions(data.results);
+          setSuggestions(results);
           setStatus("Izberi točen naslov:");
           setLoading(false);
         }
@@ -118,6 +133,17 @@ export default function Home() {
     setAddress(r.label);
     findHydrants({ lat: r.lat, lng: r.lng }, r.label);
   };
+
+  // Klik na zemljevid nastavi lokacijo požara (deluje brez GPS in interneta)
+  const pickOnMap = useCallback(
+    (loc) => {
+      findHydrants(
+        loc,
+        `izbrana točka (${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)})`
+      );
+    },
+    [findHydrants]
+  );
 
   return (
     <>
@@ -186,6 +212,9 @@ export default function Home() {
                 Razvrstitev upošteva <b>razdaljo</b>, <b>pretok vode</b> (kako
                 zmogljiv je hidrant) in <b>možnost parkiranja</b> gasilskega
                 vozila ob hidrantu.
+                <br />
+                Namig: če iskanje po naslovu ali GPS ne deluje, lahko{" "}
+                <b>klikneš lokacijo požara neposredno na zemljevidu</b>.
               </div>
             </div>
 
@@ -210,11 +239,11 @@ export default function Home() {
           {/* DESNA STRAN: zemljevid */}
           <div className="panel" style={{ padding: 12 }}>
             <div className="map-wrap">
-              {fireLocation ? (
-                <HydrantMap fireLocation={fireLocation} results={results} />
-              ) : (
-                <HydrantMap />
-              )}
+              <HydrantMap
+                fireLocation={fireLocation}
+                results={results}
+                onPick={pickOnMap}
+              />
             </div>
             <div className="legend">
               <span>
@@ -226,6 +255,7 @@ export default function Home() {
                 hidranti
               </span>
               <span>🔥 Lokacija požara</span>
+              <span>🖱️ Klikni na zemljevid za lokacijo požara</span>
             </div>
           </div>
         </div>
