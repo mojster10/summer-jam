@@ -3,8 +3,10 @@
 import { useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import HydrantList from "@/components/HydrantList.jsx";
+import RoutePanel from "@/components/RoutePanel.jsx";
 import { geocodeAddress } from "@/lib/geocodeClient.js";
 import { fetchNearbyHydrants } from "@/lib/hydrantsClient.js";
+import { fetchRoute } from "@/lib/routeClient.js";
 import { rankHydrants } from "@/lib/scoring.js";
 import { formatDistance } from "@/lib/geo.js";
 
@@ -22,6 +24,21 @@ export default function Home() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
+  // Navigacija
+  const [route, setRoute] = useState(null);
+  const [routeTarget, setRouteTarget] = useState(null);
+  const [routing, setRouting] = useState(false);
+
+  // Izračunaj pot od lokacije požara do izbranega hidranta
+  const computeRoute = useCallback(async (from, hydrant) => {
+    if (!from || !hydrant) return;
+    setRouteTarget(hydrant);
+    setRouting(true);
+    setRoute(null);
+    const r = await fetchRoute(from, hydrant); // sam poskrbi za rezervo
+    setRoute(r);
+    setRouting(false);
+  }, []);
 
   // Poišči hidrante za dano lokacijo:
   // 1) iz OpenStreetMap (Overpass) potegni realne hidrante v okolici,
@@ -32,6 +49,8 @@ export default function Home() {
     setSuggestions([]);
     setFireLocation(loc);
     setResults([]);
+    setRoute(null);
+    setRouteTarget(null);
     setStatus(
       label ? `Iščem hidrante blizu: ${label} …` : "Iščem hidrante …"
     );
@@ -51,13 +70,15 @@ export default function Home() {
       setStatus(
         `Najdenih ${hydrants.length} hidrantov (prikazanih najboljših ${ranked.length}).`
       );
+      // Samodejno izriši navigacijo do najbližjega (priporočenega) hidranta
+      computeRoute(loc, ranked[0]);
     } catch (e) {
       setError(e.message);
       setStatus("");
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [computeRoute]);
 
   // 1) Uporabi mojo trenutno lokacijo (GPS)
   const useMyLocation = useCallback(() => {
@@ -155,6 +176,14 @@ export default function Home() {
     [findHydrants]
   );
 
+  // Navigacija do izbranega hidranta (gumb na kartici)
+  const navigateTo = useCallback(
+    (hydrant) => {
+      if (fireLocation) computeRoute(fireLocation, hydrant);
+    },
+    [fireLocation, computeRoute]
+  );
+
   return (
     <>
       <header className="header">
@@ -242,7 +271,22 @@ export default function Home() {
                 >
                   Priporočeni hidranti
                 </h2>
-                <HydrantList results={results} />
+                <RoutePanel
+                  route={route}
+                  target={routeTarget}
+                  routing={routing}
+                  onClose={() => {
+                    setRoute(null);
+                    setRouteTarget(null);
+                  }}
+                />
+                <div style={{ marginTop: 16 }}>
+                  <HydrantList
+                    results={results}
+                    onNavigate={navigateTo}
+                    routeTargetId={routeTarget?.id || null}
+                  />
+                </div>
               </div>
             )}
           </div>
@@ -254,6 +298,8 @@ export default function Home() {
                 fireLocation={fireLocation}
                 results={results}
                 onPick={pickOnMap}
+                route={route?.line || null}
+                routeTargetId={routeTarget?.id || null}
               />
             </div>
             <div className="legend">
@@ -266,6 +312,18 @@ export default function Home() {
                 hidranti
               </span>
               <span>🔥 Lokacija požara</span>
+              <span>
+                <i
+                  className="dot"
+                  style={{
+                    background: "#16a34a",
+                    width: 20,
+                    height: 4,
+                    borderRadius: 2,
+                  }}
+                />{" "}
+                Pot navigacije
+              </span>
               <span>🖱️ Klikni na zemljevid za lokacijo požara</span>
             </div>
           </div>

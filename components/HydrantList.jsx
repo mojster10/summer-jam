@@ -2,13 +2,14 @@
 
 import { formatDistance } from "@/lib/geo.js";
 
-export default function HydrantList({ results }) {
+export default function HydrantList({ results, onNavigate, routeTargetId }) {
   if (!results || results.length === 0) return null;
 
   return (
     <div className="results">
       {results.map((h, i) => {
-        const best = i === 0;
+        const active = routeTargetId ? h.id === routeTargetId : i === 0;
+        const best = active;
         return (
           <div key={h.id} className={`card ${best ? "best" : ""}`}>
             <div className="card-head">
@@ -22,7 +23,14 @@ export default function HydrantList({ results }) {
                   </div>
                 </div>
               </div>
-              {best && <span className="badge badge-green">Priporočeno</span>}
+              <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+                {i === 0 && (
+                  <span className="badge badge-green">Priporočeno</span>
+                )}
+                {active && routeTargetId && (
+                  <span className="badge badge-blue">🧭 navigacija</span>
+                )}
+              </div>
             </div>
 
             <div className="metrics">
@@ -81,22 +89,23 @@ export default function HydrantList({ results }) {
               style={{
                 display: "flex",
                 justifyContent: "space-between",
-                marginTop: 6,
-                fontSize: 11,
-                color: "var(--muted)",
+                alignItems: "center",
+                marginTop: 10,
+                gap: 10,
               }}
             >
-              <span>
+              <span style={{ fontSize: 11, color: "var(--muted)" }}>
                 Ocena: {(h.score * 100).toFixed(0)}%{" "}
                 {h.hasFlow ? "(razdalja + pretok)" : "(po razdalji)"}
               </span>
-              <a
-                href={`https://www.google.com/maps/dir/?api=1&destination=${h.lat},${h.lng}`}
-                target="_blank"
-                rel="noreferrer"
+              <button
+                type="button"
+                className={active ? "btn btn-primary" : "btn btn-ghost"}
+                style={{ padding: "8px 14px", flex: "0 0 auto" }}
+                onClick={() => onNavigate && onNavigate(h)}
               >
-                Navigacija ↗
-              </a>
+                🧭 Navigiraj
+              </button>
             </div>
           </div>
         );

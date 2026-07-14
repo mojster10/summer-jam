@@ -7,6 +7,7 @@ import {
   CircleMarker,
   Marker,
   Popup,
+  Polyline,
   useMap,
   useMapEvents,
 } from "react-leaflet";
@@ -24,17 +25,21 @@ const fireIcon = L.divIcon({
 });
 
 // Ob spremembi lokacije premakni pogled
-function Recenter({ center, results }) {
+function Recenter({ center, results, route }) {
   const map = useMap();
   useEffect(() => {
     if (!center) return;
-    const points = [center, ...results.map((r) => [r.lat, r.lng])];
+    // Če imamo pot, prilagodi pogled poti; sicer vsem hidrantom.
+    const points =
+      route && route.length
+        ? route
+        : [center, ...results.map((r) => [r.lat, r.lng])];
     if (points.length > 1) {
       map.fitBounds(points, { padding: [50, 50], maxZoom: 16 });
     } else {
       map.setView(center, 15);
     }
-  }, [center, results, map]);
+  }, [center, results, route, map]);
   return null;
 }
 
@@ -48,7 +53,13 @@ function ClickHandler({ onPick }) {
   return null;
 }
 
-export default function HydrantMap({ fireLocation, results = [], onPick }) {
+export default function HydrantMap({
+  fireLocation,
+  results = [],
+  onPick,
+  route = null,
+  routeTargetId = null,
+}) {
   const center = fireLocation
     ? [fireLocation.lat, fireLocation.lng]
     : SI_CENTER;
@@ -68,8 +79,18 @@ export default function HydrantMap({ fireLocation, results = [], onPick }) {
         </Marker>
       )}
 
+      {route && route.length > 1 && (
+        <Polyline
+          positions={route}
+          pathOptions={{ color: "#16a34a", weight: 6, opacity: 0.85 }}
+        />
+      )}
+
       {results.map((h, i) => {
-        const best = i === 0;
+        // Označen (zelen) je hidrant, do katerega vodi navigacija;
+        // če navigacije ni, prvi/priporočeni.
+        const highlighted = routeTargetId ? h.id === routeTargetId : i === 0;
+        const best = highlighted;
         const color = best ? "#16a34a" : "#3b82f6";
         return (
           <CircleMarker
@@ -101,7 +122,9 @@ export default function HydrantMap({ fireLocation, results = [], onPick }) {
       })}
 
       {onPick && <ClickHandler onPick={onPick} />}
-      {fireLocation && <Recenter center={center} results={results} />}
+      {fireLocation && (
+        <Recenter center={center} results={results} route={route} />
+      )}
     </MapContainer>
   );
 }
