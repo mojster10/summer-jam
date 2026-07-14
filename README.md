@@ -1,59 +1,61 @@
-# 🚒 Hidrant LJ
+# 🚒 Hidrant SI
 
-Spletna aplikacija, ki gasilcem pomaga **hitro poiskati najbližje in
-najprimernejše hidrante v Ljubljani**. Vneseš naslov objekta v požaru (ali
-uporabiš trenutno GPS lokacijo), aplikacija pa vrne razvrščen seznam hidrantov
+Spletna aplikacija, ki gasilcem pomaga **hitro poiskati najbližje hidrante
+kjerkoli v Sloveniji**. Vneseš naslov objekta v požaru, uporabiš trenutno GPS
+lokacijo ali klikneš na zemljevid — aplikacija vrne razvrščen seznam hidrantov
 skupaj z zemljevidom.
 
-## Kako deluje izbira hidranta
+## Vir podatkov (pomembno)
 
-Aplikacija ne izbere zgolj najbližjega hidranta, ampak **najbolj uporabnega**.
-Vsak hidrant dobi sestavljeno oceno na podlagi treh dejavnikov (glej
-`lib/scoring.js`):
+Hidranti prihajajo iz **OpenStreetMap** (`emergency=fire_hydrant`), ki je edini
+javno dostopen, brezplačen in vseslovenski register hidrantov. Vsebuje **vse
+hidrante, ki so v OSM vrisani**, z realnimi koordinatami.
 
-| Dejavnik | Utež | Razlaga |
-|----------|------|---------|
-| **Razdalja** | 55 % | Zračna razdalja od lokacije požara (haversine). Bližje = bolje. |
-| **Pretok vode** | 30 % | Zmogljivost hidranta v l/min — "kako poln" oz. kako močan je. Več = bolje. |
-| **Parkiranje** | 15 % | Ali lahko gasilsko vozilo parkira ob hidrantu (odlično / dobro / omejeno / slabo). |
+- ✅ **Lokacije so realne** (iz OSM).
+- ⚠️ **Pokritost ni nujno popolna** — odvisna je od tega, koliko hidrantov je v
+  posameznem kraju vrisanih v OSM.
+- ⚠️ **Pretok in tlak** sta v OSM zabeležena le redko
+  (`fire_hydrant:flow_capacity`, `fire_hydrant:pressure`). Kjer podatka ni, je
+  prikazano **"neznano"** — vrednosti se **ne izmišljujejo**.
+- ℹ️ **Možnosti parkiranja** gasilskega vozila ob hidrantu ni v nobeni javni
+  bazi, zato ni prikazana. (Popoln register s pretoki in parkirišči vodijo
+  komunalna podjetja / gasilske službe in ni javno dostopen.)
 
-Hidranti v **okvari** so izločeni; hidranti **v vzdrževanju** dobijo kazen na
-oceni. Rezultat je razvrščen seznam, kjer je najboljši označen kot
-**priporočeni**.
+Če razpolagaš z uradnim registrom (npr. lokalno komunalno podjetje), ga je
+mogoče priključiti kot dodaten/nadomestni vir v `lib/hydrantsClient.js`.
+
+## Kako deluje razvrščanje
+
+Vsak hidrant dobi oceno (glej `lib/scoring.js`):
+
+- **Razdalja** — zračna razdalja od požara (haversine); vedno na voljo.
+- **Pretok** — upošteva se **samo, kadar OSM vsebuje realen podatek**; sicer se
+  celotna teža prenese na razdaljo (renormalizacija, brez izmišljevanja).
+
+Najboljši rezultat je označen kot **priporočeni**.
 
 ## Funkcije
 
 - 🔎 **Iskanje po naslovu** — geokodiranje **v brskalniku** (Photon → Nominatim
-  kot rezerva), omejeno na Ljubljano. Zahtevek gre iz uporabnikovega IP-ja, zato
-  se izognemo blokadi (403), ki jo te storitve pogosto vrnejo oblačnim
-  strežnikom (Vercel, AWS).
-- 📍 **Trenutna lokacija** — uporabi GPS naprave (deluje prek HTTPS).
-- 🖱️ **Klik na zemljevid** — lokacijo požara lahko določiš tudi s klikom na
-  zemljevid; deluje tudi, če geokodiranje ali GPS nista na voljo.
-- 🗺️ **Interaktivni zemljevid** (Leaflet + OpenStreetMap) z lokacijo požara in
-  hidranti.
-- 📊 **Podrobnosti hidranta** — razdalja, ocenjeni čas prihoda, pretok, tlak,
-  premer, možnost parkiranja in navigacija do hidranta.
-- 🗄️ **Baza hidrantov** — dostopna prek API-ja.
+  kot rezerva), za vso Slovenijo. Zahtevek gre iz uporabnikovega IP-ja, zato se
+  izognemo blokadi (403), ki jo storitve pogosto vračajo oblačnim strežnikom
+  (Vercel, AWS).
+- 📍 **Trenutna lokacija** — GPS naprave (deluje prek HTTPS).
+- 🖱️ **Klik na zemljevid** — lokacijo požara lahko določiš tudi s klikom;
+  deluje tudi, če geokodiranje ali GPS nista na voljo.
+- 🗺️ **Interaktivni zemljevid** (Leaflet + OpenStreetMap).
+- 📊 **Podrobnosti hidranta** — razdalja, ocenjeni čas prihoda, tip, premer,
+  (pretok/tlak, kjer obstaja) in navigacija.
 
-## API
+## Arhitektura
 
-| Pot | Metoda | Opis |
-|-----|--------|------|
-| `/api/hydrants` | GET | Vsi hidranti iz baze. |
-| `/api/nearest` | POST | Telo `{ lat, lng, limit? }` → razvrščeni hidranti. |
-| `/api/geocode?q=<naslov>` | GET | Naslov → koordinate (neobvezno; UI geokodira v brskalniku). |
+Popolnoma **client-side** (statična Next.js stran, brez zalednih API poti):
 
-## Baza podatkov
-
-Privzeto se uporablja vgrajeni nabor podatkov v `lib/data/hydrants.js` (vzorčni
-hidranti po ljubljanskih četrtih). Dostop do baze je izoliran v `lib/db.js`, zato
-ga zlahka zamenjaš s pravo bazo (Postgres / Supabase / Neon) — samo prepiši
-funkciji `getAllHydrants()` in `getHydrantById()`, vmesnik ostane enak. Primer je
-zapisan v komentarju datoteke.
-
-> Podatki o hidrantih so **vzorčni** in namenjeni predstavitvi. Za uporabo na
-> terenu jih zamenjaj z uradnimi podatki (npr. VOKA Snaga / JP Vodovod).
+- `lib/hydrantsClient.js` — pridobivanje hidrantov iz Overpass (OSM).
+- `lib/geocodeClient.js` — geokodiranje naslovov (Photon/Nominatim).
+- `lib/scoring.js` — razvrščanje po razdalji (+ pretok, kjer je znan).
+- `lib/geo.js` — razdalje in ocene.
+- `components/HydrantMap.jsx`, `components/HydrantList.jsx`, `app/page.jsx`.
 
 ## Zagon lokalno
 
@@ -65,18 +67,15 @@ npm run dev
 
 ## Okoljske spremenljivke
 
-Kopiraj `.env.example` v `.env.local`. Aplikacija deluje tudi brez ključev.
-
-- `NOMINATIM_EMAIL` — (priporočljivo) kontaktni e-naslov za Nominatim.
+**Nobenih ni potrebnih.** Aplikacija deluje brez ključev.
 
 ## Namestitev na Vercel
 
 1. Potisni repozitorij na GitHub.
 2. Na [vercel.com](https://vercel.com) uvozi projekt (samodejno zazna Next.js).
-3. (Neobvezno) dodaj `NOMINATIM_EMAIL` med Environment Variables.
-4. Deploy. 🚀
+3. Deploy. 🚀 (Po prvem uvozu se vsak `git push` samodejno redeploya.)
 
 ## Tehnologije
 
 Next.js 14 (App Router) · React 18 · Leaflet / react-leaflet · OpenStreetMap
-Nominatim · brez zunanje baze (privzeto).
+Overpass API · Photon / Nominatim · brez zaledne baze in brez ključev.

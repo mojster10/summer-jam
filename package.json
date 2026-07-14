@@ -1,8 +1,8 @@
 {
-  "name": "hidrant-lj",
-  "version": "1.0.0",
+  "name": "hidrant-si",
+  "version": "2.0.0",
   "private": true,
-  "description": "Hidrant LJ — iskalnik najbližjih hidrantov za gasilce v Ljubljani",
+  "description": "Hidrant SI — iskalnik najbližjih hidrantov za gasilce v Sloveniji (podatki OpenStreetMap)",
   "scripts": {
     "dev": "next dev",
     "build": "next build",

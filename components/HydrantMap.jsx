@@ -13,7 +13,7 @@ import {
 import L from "leaflet";
 import { formatDistance } from "@/lib/geo.js";
 
-const LJ_CENTER = [46.0569, 14.5058];
+const SI_CENTER = [46.15, 14.99]; // središče Slovenije
 
 // Ikona za lokacijo požara (rdeč marker z emojijem)
 const fireIcon = L.divIcon({
@@ -51,10 +51,10 @@ function ClickHandler({ onPick }) {
 export default function HydrantMap({ fireLocation, results = [], onPick }) {
   const center = fireLocation
     ? [fireLocation.lat, fireLocation.lng]
-    : LJ_CENTER;
+    : SI_CENTER;
 
   return (
-    <MapContainer center={LJ_CENTER} zoom={13} scrollWheelZoom>
+    <MapContainer center={SI_CENTER} zoom={8} scrollWheelZoom>
       <TileLayer
         attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
         url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
@@ -86,16 +86,15 @@ export default function HydrantMap({ fireLocation, results = [], onPick }) {
             <Popup>
               <b>
                 {best ? "⭐ " : `#${i + 1} `}
-                {h.address}
+                {h.address || h.type}
               </b>
               <br />
               {h.id} · {h.type}
               <br />
               Razdalja: {formatDistance(h.distanceMeters)}
               <br />
-              Pretok: {h.flowLpm} l/min
-              <br />
-              Parkiranje: {h.parkingLabel}
+              Pretok: {h.hasFlow ? `${h.flowLpm} l/min` : "neznano"}
+              {h.diameterMm ? ` · ⌀${h.diameterMm} mm` : ""}
             </Popup>
           </CircleMarker>
         );

@@ -4,6 +4,9 @@ import { useState, useCallback } from "react";
 import dynamic from "next/dynamic";
 import HydrantList from "@/components/HydrantList.jsx";
 import { geocodeAddress } from "@/lib/geocodeClient.js";
+import { fetchNearbyHydrants } from "@/lib/hydrantsClient.js";
+import { rankHydrants } from "@/lib/scoring.js";
+import { formatDistance } from "@/lib/geo.js";
 
 // Leaflet ne sme na strežnik (uporablja window) → dinamični uvoz brez SSR
 const HydrantMap = dynamic(() => import("@/components/HydrantMap.jsx"), {
@@ -20,26 +23,33 @@ export default function Home() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState("");
 
-  // Pokliči ocenjevalnik za dano lokacijo
+  // Poišči hidrante za dano lokacijo:
+  // 1) iz OpenStreetMap (Overpass) potegni realne hidrante v okolici,
+  // 2) jih razvrsti (razdalja + pretok, kjer je znan) — vse v brskalniku.
   const findHydrants = useCallback(async (loc, label) => {
     setLoading(true);
     setError("");
     setSuggestions([]);
-    setStatus(label ? `Iščem hidrante blizu: ${label}` : "Iščem hidrante …");
+    setFireLocation(loc);
+    setResults([]);
+    setStatus(
+      label ? `Iščem hidrante blizu: ${label} …` : "Iščem hidrante …"
+    );
     try {
-      const res = await fetch("/api/nearest", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...loc, limit: 5 }),
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.error || "Napaka strežnika.");
-      setFireLocation(loc);
-      setResults(data.results);
+      const { hydrants, radiusM } = await fetchNearbyHydrants(loc);
+      if (!hydrants.length) {
+        setStatus("");
+        setError(
+          `V polmeru ${formatDistance(
+            radiusM
+          )} ni vrisanih hidrantov v OpenStreetMap.`
+        );
+        return;
+      }
+      const ranked = rankHydrants(hydrants, loc, { limit: 8 });
+      setResults(ranked);
       setStatus(
-        data.results.length
-          ? `Najdenih ${data.results.length} hidrantov`
-          : "V bližini ni najdenih hidrantov."
+        `Najdenih ${hydrants.length} hidrantov (prikazanih najboljših ${ranked.length}).`
       );
     } catch (e) {
       setError(e.message);
@@ -107,7 +117,7 @@ export default function Home() {
         // izognemo blokadi (403) storitev do oblačnih strežnikov.
         const results = await geocodeAddress(q);
         if (!results.length) {
-          setError("Naslova ni bilo mogoče najti v Ljubljani.");
+          setError("Naslova ni bilo mogoče najti v Sloveniji.");
           setStatus("");
           setLoading(false);
           return;
@@ -150,8 +160,8 @@ export default function Home() {
       <header className="header">
         <span className="logo">🚒</span>
         <div>
-          <h1>Hidrant LJ</h1>
-          <p>Najbližji hidranti za gasilce · Ljubljana</p>
+          <h1>Hidrant SI</h1>
+          <p>Najbližji hidranti za gasilce · vsa Slovenija</p>
         </div>
       </header>
 
@@ -167,7 +177,7 @@ export default function Home() {
                 <input
                   id="addr"
                   type="text"
-                  placeholder="npr. Slovenska cesta 34, Ljubljana"
+                  placeholder="npr. Slovenska cesta 34, Maribor"
                   value={address}
                   onChange={(e) => setAddress(e.target.value)}
                   autoComplete="off"
@@ -209,9 +219,10 @@ export default function Home() {
               {error && <div className="error">{error}</div>}
 
               <div className="hint">
-                Razvrstitev upošteva <b>razdaljo</b>, <b>pretok vode</b> (kako
-                zmogljiv je hidrant) in <b>možnost parkiranja</b> gasilskega
-                vozila ob hidrantu.
+                Hidranti se sproti pridobijo iz <b>OpenStreetMap</b> (realne
+                lokacije, vsa Slovenija). Razvrstitev temelji na{" "}
+                <b>razdalji</b>, kjer pa OSM vsebuje realen podatek o{" "}
+                <b>pretoku</b>, se upošteva tudi ta. Izmišljenih vrednosti ni.
                 <br />
                 Namig: če iskanje po naslovu ali GPS ne deluje, lahko{" "}
                 <b>klikneš lokacijo požara neposredno na zemljevidu</b>.
@@ -262,10 +273,12 @@ export default function Home() {
       </div>
 
       <footer className="footer">
-        Hidrant LJ · demonstracijska aplikacija za hitro lociranje hidrantov.
+        Hidrant SI · lociranje hidrantov za vso Slovenijo.
         <br />
-        Podatki o hidrantih so vzorčni. Zemljevid: © OpenStreetMap. Pred uporabo
-        na terenu preveri uradne vire.
+        Podatki o hidrantih in zemljevid: © OpenStreetMap (sodelavci). Pokritost
+        je odvisna od vrisanosti v OSM in ni nujno popolna. Podatki o pretoku
+        so na voljo le, kjer jih vsebuje OSM. Pred uporabo na terenu preveri
+        uradne vire.
       </footer>
     </>
   );

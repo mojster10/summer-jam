@@ -2,9 +2,9 @@ import "./globals.css";
 import "leaflet/dist/leaflet.css";
 
 export const metadata = {
-  title: "Hidrant LJ — najbližji hidranti za gasilce",
+  title: "Hidrant SI — najbližji hidranti za gasilce (vsa Slovenija)",
   description:
-    "Poišči najbližje in najprimernejše hidrante v Ljubljani glede na razdaljo, pretok vode in možnost parkiranja gasilskega vozila.",
+    "Poišči najbližje hidrante kjerkoli v Sloveniji. Realne lokacije iz OpenStreetMap, razvrstitev po razdalji (in pretoku, kjer je znan).",
 };
 
 export const viewport = {
